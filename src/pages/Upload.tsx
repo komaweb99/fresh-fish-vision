@@ -37,9 +37,9 @@ const Upload = () => {
     try {
       setAnalyzing(true);
       
-      // Initialize the Gemini API
+      // Initialize the Gemini API with the new model
       const genAI = new GoogleGenerativeAI("AIzaSyD52MnfxmZHNe0gBWTG3Tt3T9W9ca3B8wM");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       // Convert the image to base64
       const fileReader = new FileReader();
