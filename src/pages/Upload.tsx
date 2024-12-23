@@ -3,10 +3,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const Upload = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,6 +28,58 @@ const Upload = () => {
           description: "Veuillez sélectionner une image (JPG, PNG, etc.)",
         });
       }
+    }
+  };
+
+  const analyzeImage = async () => {
+    if (!selectedImage) return;
+
+    try {
+      setAnalyzing(true);
+      
+      // Initialize the Gemini API
+      const genAI = new GoogleGenerativeAI("AIzaSyD52MnfxmZHNe0gBWTG3Tt3T9W9ca3B8wM");
+      const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+
+      // Convert the image to base64
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(selectedImage);
+      
+      fileReader.onload = async () => {
+        const base64Image = fileReader.result as string;
+        
+        // Prepare the image data
+        const imageData = {
+          inlineData: {
+            data: base64Image.split(',')[1],
+            mimeType: selectedImage.type
+          }
+        };
+
+        // Generate content with the image
+        const result = await model.generateContent([
+          "Analyze this fish image and determine its freshness. Look for these indicators: 1) Eye clarity and brightness 2) Gill color and texture 3) Skin appearance and slime 4) Overall flesh firmness. Provide a rating (Very Fresh, Fresh, Less Fresh, or Not Recommended) and explain why.",
+          imageData
+        ]);
+
+        const response = await result.response;
+        const text = response.text();
+
+        toast({
+          title: "Analyse terminée",
+          description: text,
+          duration: 10000,
+        });
+      };
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur d'analyse",
+        description: "Une erreur est survenue lors de l'analyse de l'image. Veuillez réessayer.",
+      });
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -76,15 +130,10 @@ const Upload = () => {
           {selectedImage && (
             <Button
               className="w-full bg-fresh hover:bg-ocean text-white"
-              onClick={() => {
-                toast({
-                  title: "Fonctionnalité en développement",
-                  description:
-                    "L'analyse d'image sera bientôt disponible avec l'API Gemini.",
-                });
-              }}
+              onClick={analyzeImage}
+              disabled={analyzing}
             >
-              Analyser l'image
+              {analyzing ? "Analyse en cours..." : "Analyser l'image"}
             </Button>
           )}
         </CardContent>
