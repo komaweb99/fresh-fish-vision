@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 const Upload = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -103,6 +105,19 @@ Explique en 2-3 phrases simples pourquoi.`;
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert>
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              Pour une meilleure analyse, votre photo doit :
+              <ul className="list-disc pl-4 mt-2 space-y-1">
+                <li>Montrer le poisson entier</li>
+                <li>Être bien éclairée</li>
+                <li>Capturer clairement les yeux et les branchies</li>
+                <li>Être prise de côté pour voir la texture de la peau</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+
           <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-fresh rounded-lg bg-sky/10">
             <input
               type="file"
