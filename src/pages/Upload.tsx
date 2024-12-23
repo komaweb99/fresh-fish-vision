@@ -37,18 +37,15 @@ const Upload = () => {
     try {
       setAnalyzing(true);
       
-      // Initialize the Gemini API with the new model
       const genAI = new GoogleGenerativeAI("AIzaSyD52MnfxmZHNe0gBWTG3Tt3T9W9ca3B8wM");
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      // Convert the image to base64
       const fileReader = new FileReader();
       fileReader.readAsDataURL(selectedImage);
       
       fileReader.onload = async () => {
         const base64Image = fileReader.result as string;
         
-        // Prepare the image data
         const imageData = {
           inlineData: {
             data: base64Image.split(',')[1],
@@ -56,27 +53,36 @@ const Upload = () => {
           }
         };
 
-        // Generate content with the image
-        const result = await model.generateContent([
-          "Analyze this fish image and determine its freshness. Look for these indicators: 1) Eye clarity and brightness 2) Gill color and texture 3) Skin appearance and slime 4) Overall flesh firmness. Provide a rating (Very Fresh, Fresh, Less Fresh, or Not Recommended) and explain why.",
-          imageData
-        ]);
+        const prompt = `Analyse cette image de poisson et évalue sa fraîcheur selon ces critères:
 
+1. Texture de la chair (ferme ou molle)
+2. État des yeux (bombés et brillants ou plats et ternes)
+3. Couleur des branchies (rouge vif ou brune)
+4. Aspect de la peau (brillante ou terne)
+
+Donne une note globale:
+- EXTRA: Tous les critères sont excellents
+- A: Qualité moyenne mais acceptable
+- B: Qualité inférieure
+
+Explique en 2-3 phrases simples pourquoi.`;
+
+        const result = await model.generateContent([prompt, imageData]);
         const response = await result.response;
         const text = response.text();
 
         toast({
-          title: "Analyse terminée",
+          title: "Résultat de l'analyse",
           description: text,
           duration: 10000,
         });
       };
     } catch (error) {
-      console.error("Error analyzing image:", error);
+      console.error("Erreur d'analyse:", error);
       toast({
         variant: "destructive",
-        title: "Erreur d'analyse",
-        description: "Une erreur est survenue lors de l'analyse de l'image. Veuillez réessayer.",
+        title: "Erreur",
+        description: "Impossible d'analyser l'image. Veuillez réessayer.",
       });
     } finally {
       setAnalyzing(false);
